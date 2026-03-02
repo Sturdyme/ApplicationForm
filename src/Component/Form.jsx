@@ -12,7 +12,7 @@ import SignatureCanvas from "react-signature-canvas";
 import ReviewItem from './ReviewItem';
 import { toast } from "react-toastify";
 
-const API_URL = "";
+const API_URL = "https://applicationform-backend-3.onrender.com";
 
 const Form = () => {
   const fileInputRef = useRef(null);
@@ -46,6 +46,8 @@ const Form = () => {
   const [isLoaded, setIsLoaded] = useState(false);
 
   const jobs = ["Appointment Scheduler", "Customer Service Representative", "Data Entry Analyst", "Data Entry Strategist", "Insurance Agent", "Payroll Assistant"];
+
+  
 
   // Logic functions remain the same as your original
   const handleChooseFile = () => fileInputRef.current.click();
@@ -146,7 +148,7 @@ const Form = () => {
 
   // 5. Submit to API
   try {
-    const response = await fetch("/api/applications", {
+    const response = await fetch(`${API_URL}/api/applications`, {
       method: "POST",
       headers: {
         "Accept": "application/json",
