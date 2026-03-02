@@ -120,10 +120,19 @@ const Form = () => {
 
   // Signature (Sent as Base64 string)
    if (sigCanvas.current && !sigCanvas.current.isEmpty()) {
-    formData.append('signature', sigCanvas.current.getTrimmedCanvas().toDataURL());
+  try {
+    // Attempt the trimmed version first
+    const trimmedCanvas = sigCanvas.current.getTrimmedCanvas();
+    formData.append('signature', trimmedCanvas.toDataURL());
+  } catch (err) {
+    console.warn("Trimming failed, sending raw signature instead:", err);
+    // FALLBACK: Use the raw internal canvas if the trim function is broken
+    const rawCanvas = sigCanvas.current.getCanvas();
+    formData.append('signature', rawCanvas.toDataURL());
+  }
 } else {
-    // Optional: you might want to alert the user that a signature is required
-    console.error("Signature is empty");
+  toast.error("Signature is required!");
+  return; // Stop the submission
 }
 
 
