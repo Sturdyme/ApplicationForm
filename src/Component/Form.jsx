@@ -1,4 +1,4 @@
-import React, { useRef, useState } from 'react'
+import React, { useEffect, useRef, useState } from 'react'
 import bgImage from '../assets/dwell.png'
 import logo from '../assets/logo.png'
 import { FiUpload, FiUser } from 'react-icons/fi'
@@ -43,6 +43,7 @@ const Form = () => {
   const [termsAccepted, setTermsAccepted] = useState(false);
   const [driversLicense, setDriversLicense] = useState(null);
   const [resumeFile, setResumeFile] = useState(null);
+  const [isLoaded, setIsLoaded] = useState(false);
 
   const jobs = ["Appointment Scheduler", "Customer Service Representative", "Data Entry Analyst", "Data Entry Strategist", "Insurance Agent", "Payroll Assistant"];
 
@@ -81,6 +82,11 @@ const Form = () => {
   const openCalendar = () => dateRef.current?.showPicker();
   const clearDate = () => setDate("");
   const clearSignature = () => sigCanvas.current.clear();
+
+  useEffect(() => {
+    const timer = setTimeout(() => setIsLoaded(true), 100);
+    return () => clearTimeout(timer);
+  }, []);
 
     const handleSubmit = async (e) => {
       e.preventDefault();
@@ -155,8 +161,8 @@ formData.append('terms_accepted', termsAccepted ? 'on' : '');
 
   return (
     <section 
-      className="min-h-screen w-full bg-cover bg-fixed flex flex-col items-center px-4 sm:px-6 lg:px-8 space-y-12 overflow-x-hidden py-10"
-      style={{ backgroundImage: `url(${bgImage})` }}> 
+      className={`min-h-screen w-full bg-cover bg-fixed flex flex-col items-center px-4 sm:px-6 lg:px-8 space-y-12 overflow-x-hidden py-10 transition-opacity duration-500 ${isLoaded ? 'opacity-100' : 'opacity-0'}`}
+      style={{ backgroundImage: `url(${bgImage})` }}>
       
       {/* Header Card */}
       <div className='flex justify-center text-center w-full max-w-[1600px]'>
