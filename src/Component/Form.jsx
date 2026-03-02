@@ -89,15 +89,15 @@ const Form = () => {
   }, []);
 
     const handleSubmit = async (e) => {
-    e.preventDefault();
+  e.preventDefault();
 
   const formData = new FormData();
   
-  // Text Fields
+  // 1. Text Fields - Corrected 'dob' to use the 'dob' state instead of 'date'
   formData.append('first_name', firstName);
   formData.append('last_name', lastName);
   formData.append('email', email);
-  formData.append('dob', date); // You used 'date' in the state above
+  formData.append('dob', dob); // FIX: Use 'dob' state
   formData.append('phone', phone);
   formData.append('position', position);
   formData.append('employment', employmentStatus);
@@ -106,64 +106,74 @@ const Form = () => {
   formData.append('state', state);
   formData.append('zip', zipcode);
   formData.append('terms_accepted', termsAccepted ? '1' : '0');
- 
 
-  // Drivers License (Handle both File and Webcam)
+  // 2. Drivers License - Convert Webcam Base64 to a real File object
   if (driversLicense) {
     formData.append("drivers_license", driversLicense);
+  } else if (capturedImage) {
+    try {
+      // Logic to turn the webcam string into a file Laravel can validate
+      const res = await fetch(capturedImage);
+      const blob = await res.blob();
+      const file = new File([blob], "webcam_license.jpg", { type: "image/jpeg" });
+      formData.append("drivers_license", file);
+    } catch (err) {
+      console.error("Webcam conversion failed", err);
+    }
   }
 
-  // Resume File
+  // 3. Resume File
   if (resumeFile) {
     formData.append("resume_file", resumeFile);
+  } else if (profileUrl) {
+    formData.append("resume_url", profileUrl);
   }
 
-  // Signature (Sent as Base64 string)
-   if (sigCanvas.current && !sigCanvas.current.isEmpty()) {
-  try {
-    // Attempt the trimmed version first
-    const trimmedCanvas = sigCanvas.current.getTrimmedCanvas();
-    formData.append('signature', trimmedCanvas.toDataURL());
-  } catch (err) {
-    console.warn("Trimming failed, sending raw signature instead:", err);
-    // FALLBACK: Use the raw internal canvas if the trim function is broken
-    const rawCanvas = sigCanvas.current.getCanvas();
-    formData.append('signature', rawCanvas.toDataURL());
+  // 4. Signature (Fallback logic for Vite bug)
+  if (sigCanvas.current && !sigCanvas.current.isEmpty()) {
+    let base64String;
+    try {
+      base64String = sigCanvas.current.getTrimmedCanvas().toDataURL("image/png");
+    } catch (err) {
+      console.warn("Trimming failed, sending raw signature:", err);
+      base64String = sigCanvas.current.getCanvas().toDataURL("image/png");
+    }
+    formData.append('signature', base64String);
+  } else {
+    toast.error("Signature is required!");
+    return; 
   }
-} else {
-  toast.error("Signature is required!");
-  return; // Stop the submission
-}
 
-
+  // 5. Submit to API
   try {
-    // Relative URL is correct for Vite Proxy
     const response = await fetch("/api/applications", {
       method: "POST",
       headers: {
         "Accept": "application/json",
-        // Do NOT set Content-Type
       },
       body: formData,
     });
 
-    const contentType = response.headers.get("content-type");
-    if (!contentType || !contentType.includes("application/json")) {
-      const text = await response.text();
-      throw new Error(`Server returned non-JSON. Likely a 404 or 500 error. Check console.`);
-    }
-
     const data = await response.json();
 
     if (!response.ok) {
-      toast.error(data.message || "Something went wrong ❌");
+      // 422 ERROR DEBUGGER: This will tell you EXACTLY what Laravel didn't like
+      if (response.status === 422 && data.errors) {
+        const errorMessages = Object.values(data.errors).flat().join(" | ");
+        toast.error(`Validation Failed: ${errorMessages}`);
+        console.log("Laravel Validation Errors:", data.errors);
+      } else {
+        toast.error(data.message || "Something went wrong ❌");
+      }
       return;
     }
 
     toast.success("Application submitted successfully 🎉");
     setReviewMode(false);
+    
+    // Optional: Reset form here
   } catch (error) {
-    console.error("Error:", error);
+    console.error("Submission Error:", error);
     toast.error(`Submission failed: ${error.message}`);
   }
 };
