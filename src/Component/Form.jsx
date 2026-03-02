@@ -116,7 +116,7 @@ formData.append('terms_accepted', termsAccepted ? 'on' : '');
   }
 
    try {
-    const response = await fetch(`${API_URL}/applications`, {
+    const response = await fetch(`${API_URL}/api/applications`, {
       method: "POST",
       headers: {
         Accept: "application/json",
@@ -125,11 +125,19 @@ formData.append('terms_accepted', termsAccepted ? 'on' : '');
       body: formData,
     });
 
-    const data = await response.json(); // ✅ declare FIRST
+    // Check if the response is actually JSON before parsing
+    const contentType = response.headers.get("content-type");
+    if (!contentType || !contentType.includes("application/json")) {
+      const text = await response.text();
+      console.error("Non-JSON response received:", text);
+      throw new Error(`Server returned status ${response.status} (Not JSON). Check console.`);
+    }
 
-        if (!response.ok) {
-      toast.error("Something went wrong ❌");
-      console.log("Validation Errors:", data);
+    const data = await response.json();
+
+    if (!response.ok) {
+      toast.error(data.message || "Something went wrong ❌");
+      console.log("Server Error Response:", data);
       return;
     }
 
@@ -140,7 +148,7 @@ formData.append('terms_accepted', termsAccepted ? 'on' : '');
 
   } catch (error) {
     console.error("Error:", error);
-    toast.error("Server error. Please try again.");
+    toast.error(`Submission failed: ${error.message}`);
   }
 };
 
