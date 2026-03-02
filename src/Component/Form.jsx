@@ -12,7 +12,7 @@ import SignatureCanvas from "react-signature-canvas";
 import ReviewItem from './ReviewItem';
 import { toast } from "react-toastify";
 
-const API_URL = import.meta.env.VITE_API_URL;
+const API_URL = import.meta.env.DEV ? "" : (import.meta.env.VITE_API_URL || "").replace(/\/$/, "");
 
 const Form = () => {
   const fileInputRef = useRef(null);
@@ -122,7 +122,9 @@ formData.append('terms_accepted', termsAccepted ? 'on' : '');
   }
 
    try {
-    const response = await fetch(`${API_URL}/api/applications`, {
+    const url = `${API_URL}/api/applications`;
+    console.log("Submitting to:", url);
+    const response = await fetch(url, {
       method: "POST",
       headers: {
         Accept: "application/json",
