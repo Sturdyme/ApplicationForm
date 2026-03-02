@@ -12,7 +12,7 @@ import SignatureCanvas from "react-signature-canvas";
 import ReviewItem from './ReviewItem';
 import { toast } from "react-toastify";
 
-const API_URL = import.meta.env.DEV ? "" : (import.meta.env.VITE_API_URL || "").replace(/\/$/, "");
+const API_URL = "";
 
 const Form = () => {
   const fileInputRef = useRef(null);
@@ -89,74 +89,70 @@ const Form = () => {
   }, []);
 
     const handleSubmit = async (e) => {
-      e.preventDefault();
+    e.preventDefault();
 
   const formData = new FormData();
-formData.append('first_name', firstName);   // NOT first_name
-formData.append('last_name', lastName);
-formData.append('email', email);
-formData.append('dob', dob);
-formData.append('phone', phone);
-formData.append('position', position);
-formData.append('employment', employmentStatus);
-formData.append('address', address);
-formData.append('city', city);
-formData.append('state', state);
-formData.append('zip', zipcode);
-formData.append('drivers_license', driversLicense);
-formData.append('resume_file', resumeFile);
-formData.append('terms_accepted', termsAccepted ? 'on' : '');
+  
+  // Text Fields
+  formData.append('first_name', firstName);
+  formData.append('last_name', lastName);
+  formData.append('email', email);
+  formData.append('dob', date); // You used 'date' in the state above
+  formData.append('phone', phone);
+  formData.append('position', position);
+  formData.append('employment', employmentStatus);
+  formData.append('address', address);
+  formData.append('city', city);
+  formData.append('state', state);
+  formData.append('zip', zipcode);
+  formData.append('terms_accepted', termsAccepted ? '1' : '0');
+ 
 
-
-
+  // Drivers License (Handle both File and Webcam)
   if (driversLicense) {
-    formData.append("license_path", driversLicense);
+    formData.append("drivers_license", driversLicense);
   }
 
+  // Resume File
   if (resumeFile) {
     formData.append("resume_file", resumeFile);
   }
 
-  if (sigCanvas.current) {
-    formData.append("signature", sigCanvas.current.toDataURL());
-  }
+  // Signature (Sent as Base64 string)
+   if (sigCanvas.current && !sigCanvas.current.isEmpty()) {
+    formData.append('signature', sigCanvas.current.getTrimmedCanvas().toDataURL());
+} else {
+    // Optional: you might want to alert the user that a signature is required
+    console.error("Signature is empty");
+}
 
-   try {
-    const url = `${API_URL}/api/applications`;
-    console.log("Submitting to:", url);
-    const response = await fetch(url, {
+
+  try {
+    // Relative URL is correct for Vite Proxy
+    const response = await fetch("/api/applications", {
       method: "POST",
       headers: {
-        Accept: "application/json",
+        "Accept": "application/json",
+        // Do NOT set Content-Type
       },
-
       body: formData,
     });
 
-    // Check if the response is actually JSON before parsing
     const contentType = response.headers.get("content-type");
     if (!contentType || !contentType.includes("application/json")) {
       const text = await response.text();
-      console.error("Non-JSON response received:", text);
-      if (response.status === 404) {
-        throw new Error("API Endpoint not found (404). Please verify the backend URL and route.");
-      }
-      throw new Error(`Server returned status ${response.status} (Not JSON). Check console.`);
+      throw new Error(`Server returned non-JSON. Likely a 404 or 500 error. Check console.`);
     }
 
     const data = await response.json();
 
     if (!response.ok) {
       toast.error(data.message || "Something went wrong ❌");
-      console.log("Server Error Response:", data);
       return;
     }
 
-    // ✅ SUCCESS TOAST
     toast.success("Application submitted successfully 🎉");
-    console.log("Success:", data);
     setReviewMode(false);
-
   } catch (error) {
     console.error("Error:", error);
     toast.error(`Submission failed: ${error.message}`);
