@@ -12,7 +12,7 @@ import SignatureCanvas from "react-signature-canvas";
 import ReviewItem from './ReviewItem';
 import { toast } from "react-toastify";
 
-const API_URL = "https://applicationform-backend-3.onrender.com";
+const API_URL = import.meta.env.VITE_API_URL || "https://applicationform-backend-3.onrender.com";
 
 const Form = () => {
   const fileInputRef = useRef(null);
