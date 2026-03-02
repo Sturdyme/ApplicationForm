@@ -12,6 +12,8 @@ import SignatureCanvas from "react-signature-canvas";
 import ReviewItem from './ReviewItem';
 import { toast } from "react-toastify";
 
+const API_URL = import.meta.env.VITE_API_URL;
+
 const Form = () => {
   const fileInputRef = useRef(null);
   const webcamRef = useRef(null);
@@ -114,7 +116,7 @@ formData.append('terms_accepted', termsAccepted ? 'on' : '');
   }
 
    try {
-    const response = await fetch("http://127.0.0.1:8000/api/applications", {
+    const response = await fetch(`${API_URL}/applications`, {
       method: "POST",
       headers: {
         Accept: "application/json",
