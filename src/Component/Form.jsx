@@ -138,6 +138,9 @@ formData.append('terms_accepted', termsAccepted ? 'on' : '');
     if (!contentType || !contentType.includes("application/json")) {
       const text = await response.text();
       console.error("Non-JSON response received:", text);
+      if (response.status === 404) {
+        throw new Error("API Endpoint not found (404). Please verify the backend URL and route.");
+      }
       throw new Error(`Server returned status ${response.status} (Not JSON). Check console.`);
     }
 
