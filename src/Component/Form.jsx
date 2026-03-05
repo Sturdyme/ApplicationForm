@@ -282,18 +282,45 @@ if (sigCanvas.current && !sigCanvas.current.isEmpty()) {
       </div>
 
       {/* Date Of Birth Section */}
-      <div className='bg-white w-full max-w-[1600px] min-h-[200px] rounded-[20px] p-6 md:p-8 shadow-lg mx-auto opacity-90'> 
-        <div className='flex md:px-8 items-center gap-1'>
-          <p className='text-gray-700 text-lg font-semibold'>Date Of Birth</p>
-          <p className='text-red-500'>*</p>
-        </div>
-        <div className="w-full md:w-[700px] md:ml-8 mt-6 relative">
-          <input ref={dateRef} type="date" value={dob} onChange={(e) => setDob(e.target.value)} className="border-b-2 border-gray-300 focus:border-green-500 outline-none pr-12 pl-3 py-2 w-full text-gray-700" />
-          <IoIosCalendar onClick={openCalendar} className="absolute right-8 top-1/2 -translate-y-1/2 text-gray-400 text-xl cursor-pointer hover:text-green-500" />
-          {dob && <IoCloseCircle onClick={() => setDob("")} className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 text-lg cursor-pointer hover:text-red-500" />}
-          <p className="text-sm text-gray-500 mt-2">Format: MM/DD/YYYY</p>
-        </div>
-      </div>
+      <div className='bg-white w-full max-w-[1600px] rounded-[20px] p-5 md:p-10 shadow-lg mx-auto opacity-95'>
+  {/* Header Section: Aligns label and asterisk */}
+  <div className='flex items-center gap-1 mb-6'>
+    <label htmlFor="dob" className='text-gray-700 text-lg md:text-xl font-semibold'>
+      Date Of Birth
+    </label>
+    <span className='text-red-500' aria-hidden="true">*</span>
+  </div>
+
+  {/* Input Wrapper: Removed fixed pixel widths for fluid scaling */}
+  <div className="relative w-full lg:max-w-2xl">
+    <input
+      id="dob"
+      ref={dateRef}
+      type="date"
+      value={dob}
+      onChange={(e) => setDob(e.target.value)}
+      className="border-b-2 border-gray-300 focus:border-green-600 outline-none pr-20 pl-2 py-3 w-full text-gray-700 bg-transparent transition-colors appearance-none"
+    />
+    
+    {/* Icons Container: Keeps icons grouped and aligned */}
+    <div className="absolute right-0 top-1/2 -translate-y-1/2 flex items-center gap-2 pr-2">
+      {dob && (
+        <IoCloseCircle 
+          onClick={() => setDob("")} 
+          className="text-gray-400 text-xl cursor-pointer hover:text-red-500 transition-colors" 
+        />
+      )}
+      <IoIosCalendar 
+        onClick={openCalendar} 
+        className="text-gray-400 text-2xl cursor-pointer hover:text-green-600 transition-colors" 
+      />
+    </div>
+
+    <p className="text-xs md:text-sm text-gray-400 mt-3 font-medium tracking-wide">
+      Format: MM/DD/YYYY
+    </p>
+  </div>
+</div>
 
       {/* Driver's License Section */}
       <div className='bg-white w-full max-w-[1600px] min-h-[200px] rounded-[20px] flex flex-col justify-center p-8 shadow-lg mx-auto opacity-90'> 
