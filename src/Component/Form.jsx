@@ -303,7 +303,7 @@ if (sigCanvas.current && !sigCanvas.current.isEmpty()) {
     />
     
     {/* Icons Container: Keeps icons grouped and aligned */}
-    <div className="absolute right-0 top-1/2 -translate-y-1/2 flex items-center gap-2 pr-2">
+    <div className="absolute right-0 top-1/4 -translate-y-1/2 flex items-center gap-2 pr-2">
       {dob && (
         <IoCloseCircle 
           onClick={() => setDob("")} 
