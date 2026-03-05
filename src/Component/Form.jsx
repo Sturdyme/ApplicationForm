@@ -188,7 +188,7 @@ if (sigCanvas.current && !sigCanvas.current.isEmpty()) {
 
   return (
     <section 
-      className={`min-h-screen w-full bg-cover bg-fixed flex flex-col items-center px-4 sm:px-6 lg:px-8 space-y-12 overflow-x-hidden py-10 transition-opacity duration-500 ${isLoaded ? 'opacity-100' : 'opacity-0'}`}
+      className={`min-h-screen w-full bg-cover bg-center bg-no-repeat bg-fixed flex flex-col items-center px-4 sm:px-6 lg:px-8 space-y-12 overflow-x-hidden py-10 transition-opacity duration-500 ${isLoaded ? 'opacity-100' : 'opacity-0'}`}
       style={{ backgroundImage: `url(${bgImage})` }}>
       
       {/* Header Card */}
