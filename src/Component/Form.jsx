@@ -35,7 +35,6 @@ const Form = () => {
   const [email, setEmail] = useState("");
   const [dob, setDob] = useState("");
   const [phone, setPhone] = useState("");
-  const [date, setDate] = useState("");
   const [position, setPosition] = useState("");
   const [employmentStatus, setEmploymentStatus] = useState("");
   const [uploadMethod, setUploadMethod] = useState("");
@@ -83,7 +82,6 @@ const Form = () => {
   };
   const clearSelection = () => { setFileName(""); setCapturedImage(""); setCameraOpen(false); };
   const openCalendar = () => dateRef.current?.showPicker();
-  const clearDate = () => setDate("");
   const clearSignature = () => sigCanvas.current.clear();
 
   useEffect(() => {
@@ -188,8 +186,12 @@ if (sigCanvas.current && !sigCanvas.current.isEmpty()) {
 
   return (
     <section 
-      className={`min-h-screen w-full bg-cover bg-center bg-no-repeat bg-fixed flex flex-col items-center px-4 sm:px-6 lg:px-8 space-y-12 overflow-x-hidden py-10 transition-opacity duration-500 ${isLoaded ? 'opacity-100' : 'opacity-0'}`}
-      style={{ backgroundImage: `url(${bgImage})` }}>
+      className={`relative min-h-screen w-full flex flex-col items-center px-4 sm:px-6 lg:px-8 space-y-12 overflow-x-hidden py-10 transition-opacity duration-500 ${isLoaded ? 'opacity-100' : 'opacity-0'}`}
+    >
+      <div 
+        className="fixed inset-0 w-full h-full bg-cover bg-center bg-no-repeat -z-10"
+        style={{ backgroundImage: `url(${bgImage})` }}
+      />
       
       {/* Header Card */}
       <div className='flex justify-center text-center w-full max-w-[1600px]'>
@@ -286,9 +288,9 @@ if (sigCanvas.current && !sigCanvas.current.isEmpty()) {
           <p className='text-red-500'>*</p>
         </div>
         <div className="w-full md:w-[700px] md:ml-8 mt-6 relative">
-          <input ref={dateRef} type="date" value={dob} onChange={(e) => setDob(e.target.value)} className="border-b-2 border-gray-300 focus:border-green-500 outline-none pr-16 pl-3 py-3 w-full text-gray-700" />
-          <IoIosCalendar onClick={openCalendar} className="absolute right-10 top-1/2 -translate-y-1/2 text-gray-400 text-xl cursor-pointer hover:text-green-500" />
-          {date && <IoCloseCircle onClick={clearDate} className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 text-lg cursor-pointer hover:text-red-500" />}
+          <input ref={dateRef} type="date" value={dob} onChange={(e) => setDob(e.target.value)} className="border-b-2 border-gray-300 focus:border-green-500 outline-none pr-12 pl-3 py-3 w-full text-gray-700" />
+          <IoIosCalendar onClick={openCalendar} className="absolute right-8 top-1/2 -translate-y-1/2 text-gray-400 text-xl cursor-pointer hover:text-green-500" />
+          {dob && <IoCloseCircle onClick={() => setDob("")} className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 text-lg cursor-pointer hover:text-red-500" />}
           <p className="text-sm text-gray-500 mt-2">Format: MM/DD/YYYY</p>
         </div>
       </div>
