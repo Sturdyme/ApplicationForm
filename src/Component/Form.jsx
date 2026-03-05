@@ -282,13 +282,13 @@ if (sigCanvas.current && !sigCanvas.current.isEmpty()) {
       </div>
 
       {/* Date Of Birth Section */}
-      <div className='bg-white w-full max-w-[1600px] min-h-[200px] rounded-[20px] p-8 shadow-lg mx-auto opacity-90'> 
+      <div className='bg-white w-full max-w-[1600px] min-h-[200px] rounded-[20px] p-6 md:p-8 shadow-lg mx-auto opacity-90'> 
         <div className='flex md:px-8 items-center gap-1'>
           <p className='text-gray-700 text-lg font-semibold'>Date Of Birth</p>
           <p className='text-red-500'>*</p>
         </div>
         <div className="w-full md:w-[700px] md:ml-8 mt-6 relative">
-          <input ref={dateRef} type="date" value={dob} onChange={(e) => setDob(e.target.value)} className="border-b-2 border-gray-300 focus:border-green-500 outline-none pr-12 pl-3 py-3 w-full text-gray-700" />
+          <input ref={dateRef} type="date" value={dob} onChange={(e) => setDob(e.target.value)} className="border-b-2 border-gray-300 focus:border-green-500 outline-none pr-12 pl-3 py-2 w-full text-gray-700" />
           <IoIosCalendar onClick={openCalendar} className="absolute right-8 top-1/2 -translate-y-1/2 text-gray-400 text-xl cursor-pointer hover:text-green-500" />
           {dob && <IoCloseCircle onClick={() => setDob("")} className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 text-lg cursor-pointer hover:text-red-500" />}
           <p className="text-sm text-gray-500 mt-2">Format: MM/DD/YYYY</p>
