@@ -12,7 +12,8 @@ import SignatureCanvas from "react-signature-canvas";
 import ReviewItem from './ReviewItem';
 import { toast } from "react-toastify";
 
-const API_URL = import.meta.env.VITE_API_URL || "https://applicationform-backend-3.onrender.com";
+
+const API_URL = "https://application-form-backend-8uiy.onrender.com";
 
 const Form = () => {
   const fileInputRef = useRef(null);
@@ -132,19 +133,23 @@ const Form = () => {
   }
 
   // 4. Signature (Fallback logic for Vite bug)
-  if (sigCanvas.current && !sigCanvas.current.isEmpty()) {
-    let base64String;
-    try {
-      base64String = sigCanvas.current.getTrimmedCanvas().toDataURL("image/png");
-    } catch (err) {
-      console.warn("Trimming failed, sending raw signature:", err);
-      base64String = sigCanvas.current.getCanvas().toDataURL("image/png");
-    }
+  // 4. Signature Logic
+if (sigCanvas.current && !sigCanvas.current.isEmpty()) {
+  try {
+    // This calls the built-in method from the SignatureCanvas library
+    const canvas = sigCanvas.current.getTrimmedCanvas();
+    const base64String = canvas.toDataURL("image/png");
     formData.append('signature', base64String);
-  } else {
-    toast.error("Signature is required!");
-    return; 
+  } catch (err) {
+    console.error("Signature processing failed:", err);
+    // Fallback to untrimmed if trimming fails for some reason
+    const rawBase64 = sigCanvas.current.getCanvas().toDataURL("image/png");
+    formData.append('signature', rawBase64);
   }
+} else {
+  toast.error("Signature is required!");
+  return; 
+}
 
   // 5. Submit to API
   try {
