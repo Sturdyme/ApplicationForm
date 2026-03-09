@@ -15,6 +15,17 @@ import { toast } from "react-toastify";
 
 const API_URL = "https://application-form-backend-8uiy.onrender.com";
 
+
+const base64ToBlob = (base64, mimeType) => {
+  const byteString = atob(base64.split(',')[1]);
+  const ab = new ArrayBuffer(byteString.length);
+  const ia = new Uint8Array(ab);
+  for (let i = 0; i < byteString.length; i++) {
+    ia[i] = byteString.charCodeAt(i);
+  }
+  return new Blob([ab], { type: mimeType });
+};
+
 const Form = () => {
   const fileInputRef = useRef(null);
   const webcamRef = useRef(null);
@@ -44,8 +55,11 @@ const Form = () => {
   const [driversLicense, setDriversLicense] = useState(null);
   const [resumeFile, setResumeFile] = useState(null);
   const [isLoaded, setIsLoaded] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const jobs = ["Appointment Scheduler", "Customer Service Representative", "Data Entry Analyst", "Data Entry Strategist", "Insurance Agent", "Payroll Assistant"];
+
+  
 
   
 
@@ -89,68 +103,60 @@ const Form = () => {
     return () => clearTimeout(timer);
   }, []);
 
-    const handleSubmit = async (e) => {
+  const handleSubmit = async (e) => {
   e.preventDefault();
 
-  const formData = new FormData();
+  // 1. Initial Guards
+  if (isSubmitting) return;
   
-  // 1. Text Fields - Corrected 'dob' to use the 'dob' state instead of 'date'
-  formData.append('first_name', firstName);
-  formData.append('last_name', lastName);
-  formData.append('email', email);
-  formData.append('dob', dob); // FIX: Use 'dob' state
-  formData.append('phone', phone);
-  formData.append('position', position);
-  formData.append('employment', employmentStatus);
-  formData.append('address', address);
-  formData.append('city', city);
-  formData.append('state', state);
-  formData.append('zip', zipcode);
-  formData.append('terms_accepted', termsAccepted ? '1' : '0');
+  if (!sigCanvas.current || sigCanvas.current.isEmpty()) {
+    toast.error("Signature is required!");
+    return;
+  }
 
-  // 2. Drivers License - Convert Webcam Base64 to a real File object
-  if (driversLicense) {
-    formData.append("drivers_license", driversLicense);
-  } else if (capturedImage) {
-    try {
-      // Logic to turn the webcam string into a file Laravel can validate
-      const res = await fetch(capturedImage);
-      const blob = await res.blob();
+  setIsSubmitting(true);
+  const loadingToast = toast.loading("Submitting your application...");
+
+  try {
+    // 2. CREATE the FormData object FIRST
+    const formData = new FormData();
+    
+    // 3. Append Text Fields
+    formData.append('first_name', firstName);
+    formData.append('last_name', lastName);
+    formData.append('email', email);
+    formData.append('dob', dob);
+    formData.append('phone', phone);
+    formData.append('position', position);
+    formData.append('employment', employmentStatus);
+    formData.append('address', address);
+    formData.append('city', city);
+    formData.append('state', state);
+    formData.append('zip', zipcode);
+    formData.append('terms_accepted', termsAccepted ? '1' : '0');
+
+    // 4. Handle Drivers License (Fast conversion)
+    if (driversLicense) {
+      formData.append("drivers_license", driversLicense);
+    } else if (capturedImage) {
+      const blob = base64ToBlob(capturedImage, "image/jpeg");
       const file = new File([blob], "webcam_license.jpg", { type: "image/jpeg" });
       formData.append("drivers_license", file);
-    } catch (err) {
-      console.error("Webcam conversion failed", err);
     }
-  }
 
-  // 3. Resume File
-  if (resumeFile) {
-    formData.append("resume_file", resumeFile);
-  } else if (profileUrl) {
-    formData.append("resume_url", profileUrl);
-  }
+    // 5. Handle Resume
+    if (resumeFile) {
+      formData.append("resume_file", resumeFile);
+    } else if (profileUrl) {
+      formData.append("resume_url", profileUrl);
+    }
 
-  // 4. Signature (Fallback logic for Vite bug)
-  // 4. Signature Logic
-if (sigCanvas.current && !sigCanvas.current.isEmpty()) {
-  try {
-    // This calls the built-in method from the SignatureCanvas library
-    const canvas = sigCanvas.current.getTrimmedCanvas();
-    const base64String = canvas.toDataURL("image/png");
+    // 6. Handle Signature (Safe Method)
+    const canvasElement = sigCanvas.current.getCanvas();
+    const base64String = canvasElement.toDataURL("image/png");
     formData.append('signature', base64String);
-  } catch (err) {
-    console.error("Signature processing failed:", err);
-    // Fallback to untrimmed if trimming fails for some reason
-    const rawBase64 = sigCanvas.current.getCanvas().toDataURL("image/png");
-    formData.append('signature', rawBase64);
-  }
-} else {
-  toast.error("Signature is required!");
-  return; 
-}
 
-  // 5. Submit to API
-  try {
+    // 7. API Call
     const response = await fetch(`${API_URL}/api/applications`, {
       method: "POST",
       headers: {
@@ -162,26 +168,31 @@ if (sigCanvas.current && !sigCanvas.current.isEmpty()) {
     const data = await response.json();
 
     if (!response.ok) {
-      // 422 ERROR DEBUGGER: This will tell you EXACTLY what Laravel didn't like
-      if (response.status === 422 && data.errors) {
-        const errorMessages = Object.values(data.errors).flat().join(" | ");
-        toast.error(`Validation Failed: ${errorMessages}`);
-        console.log("Laravel Validation Errors:", data.errors);
+      if (response.status === 429) {
+        toast.update(loadingToast, { render: data.message || "Too many attempts.", type: "error", isLoading: false, autoClose: 5000 });
+      } else if (response.status === 422) {
+        toast.update(loadingToast, { render: "Validation error. Check form details.", type: "error", isLoading: false, autoClose: 5000 });
       } else {
-        toast.error(data.message || "Something went wrong ❌");
+        toast.update(loadingToast, { render: data.message || "Error ❌", type: "error", isLoading: false, autoClose: 3000 });
       }
+      setIsSubmitting(false);
       return;
     }
 
-    toast.success("Application submitted successfully 🎉");
+    toast.update(loadingToast, { render: "Application submitted successfully 🎉", type: "success", isLoading: false, autoClose: 3000 });
     setReviewMode(false);
     
-    // Optional: Reset form here
+    // Optional: resetForm();
+
   } catch (error) {
     console.error("Submission Error:", error);
-    toast.error(`Submission failed: ${error.message}`);
+    toast.update(loadingToast, { render: `Network error: ${error.message}`, type: "error", isLoading: false, autoClose: 3000 });
+  } finally {
+    setIsSubmitting(false);
   }
+  
 };
+
 
 
   return (
