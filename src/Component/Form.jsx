@@ -59,10 +59,44 @@ const Form = () => {
 
   const jobs = ["Appointment Scheduler", "Customer Service Representative", "Data Entry Analyst", "Data Entry Strategist", "Insurance Agent", "Payroll Assistant"];
 
+
+
+  const resetForm = () => {
+  // Clear Text Fields
+  setFirstName("");
+  setLastName("");
+  setAddress("");
+  setCity("");
+  setState("");
+  setZipcode("");
+  setEmail("");
+  setDob("");
+  setPhone("");
+  setPosition("");
+  setEmploymentStatus("");
+  setUploadMethod("");
+  setProfileUrl("");
+  setTermsAccepted(false);
+
+  // Clear Files and Previews
+  setDriversLicense(null);
+  setFileName("");
+  setCapturedImage("");
+  setResumeFile(null);
+  setResumeFileName("");
+  
+  // Clear Signature Canvas
+  if (sigCanvas.current) {
+    sigCanvas.current.clear();
+  }
+
+  // Reset UI States
+  setReviewMode(false);
+  setCameraOpen(false);
+};
   
 
   
-
   // Logic functions remain the same as your original
   const handleChooseFile = () => fileInputRef.current.click();
   const handleFileChange = (e) => {
@@ -182,7 +216,7 @@ const Form = () => {
     toast.update(loadingToast, { render: "Application submitted successfully 🎉", type: "success", isLoading: false, autoClose: 3000 });
     setReviewMode(false);
     
-    // Optional: resetForm();
+     resetForm();
 
   } catch (error) {
     console.error("Submission Error:", error);
@@ -190,7 +224,7 @@ const Form = () => {
   } finally {
     setIsSubmitting(false);
   }
-  
+
 };
 
 
