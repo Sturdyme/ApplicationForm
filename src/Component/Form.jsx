@@ -16,6 +16,18 @@ import { toast } from "react-toastify";
 const API_URL = "https://application-form-backend-8uiy.onrender.com";
 
 
+const dataURLtoFile = (dataurl, filename) => {
+    let arr = dataurl.split(','),
+        mime = arr[0].match(/:(.*?);/)[1],
+        bstr = atob(arr[1]), 
+        n = bstr.length, 
+        u8arr = new Uint8Array(n);
+    while(n--){
+        u8arr[n] = bstr.charCodeAt(n);
+    }
+    return new File([u8arr], filename, {type:mime});
+}
+
 const base64ToBlob = (base64, mimeType) => {
   const byteString = atob(base64.split(',')[1]);
   const ab = new ArrayBuffer(byteString.length);
@@ -137,6 +149,8 @@ const Form = () => {
     return () => clearTimeout(timer);
   }, []);
 
+
+
   const handleSubmit = async (e) => {
   e.preventDefault();
 
@@ -148,8 +162,10 @@ const Form = () => {
     return;
   }
 
+  
   setIsSubmitting(true);
   const loadingToast = toast.loading("Submitting your application...");
+
 
   try {
     // 2. CREATE the FormData object FIRST
@@ -170,13 +186,12 @@ const Form = () => {
     formData.append('terms_accepted', termsAccepted ? '1' : '0');
 
     // 4. Handle Drivers License (Fast conversion)
-    if (driversLicense) {
-      formData.append("drivers_license", driversLicense);
-    } else if (capturedImage) {
-      const blob = base64ToBlob(capturedImage, "image/jpeg");
-      const file = new File([blob], "webcam_license.jpg", { type: "image/jpeg" });
-      formData.append("drivers_license", file);
-    }
+ if (capturedImage) {
+    const imageFile = dataURLtoFile(capturedImage, "license.jpg");
+    formData.append('drivers_license', imageFile);
+} else if (driversLicense) {
+    formData.append('drivers_license', driversLicense);
+}
 
     // 5. Handle Resume
     if (resumeFile) {
@@ -187,8 +202,9 @@ const Form = () => {
 
     // 6. Handle Signature (Safe Method)
     const canvasElement = sigCanvas.current.getCanvas();
-    const base64String = canvasElement.toDataURL("image/png");
-    formData.append('signature', base64String);
+     const signatureBase64 = canvasElement.toDataURL("image/png");
+    const signatureFile = dataURLtoFile(signatureBase64, "signature.png"); // Convert to file
+    formData.append('signature', signatureFile);  
 
     // 7. API Call
     const response = await fetch(`${API_URL}/api/applications`, {
