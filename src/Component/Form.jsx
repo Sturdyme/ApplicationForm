@@ -186,6 +186,7 @@ const Form = () => {
     formData.append('terms_accepted', termsAccepted ? '1' : '0');
 
     // 4. Handle Drivers License (Fast conversion)
+ 
  if (capturedImage) {
     const imageFile = dataURLtoFile(capturedImage, "license.jpg");
     formData.append('drivers_license', imageFile);
@@ -193,18 +194,20 @@ const Form = () => {
     formData.append('drivers_license', driversLicense);
 }
 
-    // 5. Handle Resume
-    if (resumeFile) {
-      formData.append("resume_file", resumeFile);
-    } else if (profileUrl) {
-      formData.append("resume_url", profileUrl);
-    }
+// 5. Handle Resume
+if (resumeFile) {
+    formData.append("resume_file", resumeFile);
+} else if (profileUrl) {
+    formData.append("resume_url", profileUrl);
+}
 
-    // 6. Handle Signature (Safe Method)
-    const canvasElement = sigCanvas.current.getCanvas();
-     const signatureBase64 = canvasElement.toDataURL("image/png");
-    const signatureFile = dataURLtoFile(signatureBase64, "signature.png"); // Convert to file
-    formData.append('signature', signatureFile);  
+// 6. Handle Signature (THE CRITICAL CHANGE)
+const canvasElement = sigCanvas.current.getCanvas();
+const base64String = canvasElement.toDataURL("image/png");
+
+// Convert the signature base64 to a File so Laravel sees it as a 'file'
+const signatureFile = dataURLtoFile(base64String, "signature.png");
+formData.append('signature', signatureFile); 
 
     // 7. API Call
     const response = await fetch(`${API_URL}/api/applications`, {
